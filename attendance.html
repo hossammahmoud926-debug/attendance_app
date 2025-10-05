@@ -77,7 +77,8 @@
   </div>
 
   <script>
-    // تهيئة زر Google
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec"; // رابط Apps Script
+
     window.onload = function() {
       google.accounts.id.initialize({
         client_id: "573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com",
@@ -87,7 +88,7 @@
         document.getElementById("googleBtn"),
         { theme: "outline", size: "large", text: "continue_with" }
       );
-      google.accounts.id.prompt(); // لتفعيل اختيار الحساب مباشرة
+      google.accounts.id.prompt();
     };
 
     function handleCredentialResponse(response) {
@@ -130,16 +131,24 @@
             email: email
           };
 
-
-// هنا تضيف Google Apps Script function
-          google.script.run.withSuccessHandler(res => {
+fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {"Content-Type": "application/json"}
+          })
+          .then(response => response.json())
+          .then(res => {
             if (res.success) {
               message.textContent = "✅ تم تسجيل " + res.type + " بنجاح في " + res.place;
             } else {
               message.textContent = "⚠️ " + res.message;
             }
             btn.disabled = false;
-          }).registerAttendance(data);
+          })
+          .catch(err => {
+            message.textContent = "⚠️ حدث خطأ";
+            btn.disabled = false;
+          });
 
         }, error => {
           message.textContent = "⚠️ لم يتم الحصول على موقعك";
