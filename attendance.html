@@ -1,196 +1,125 @@
 
-.<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسجيل حضور وانصراف</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <meta name="google-signin-client_id" content="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com">
+
   <style>
-    body{display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#e0f7fa,#80deea)}
-    #container{background:#fff;padding:28px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,0.15);width:92%;max-width:420px;text-align:center}
-    input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid #ccc;box-sizing:border-box}
-    button{width:100%;padding:12px;margin-top:10px;border-radius:8px;border:none;background:#2196f3;color:#fff;font-size:16px;cursor:pointer}
-    button:disabled{background:#aaa;cursor:not-allowed}
-    #message{min-height:28px;margin-top:14px;font-weight:600}
+    body {display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; background: linear-gradient(135deg, #e0f7fa, #80deea); margin: 0;}
+    #container {text-align: center; background: #fff; padding: 30px 40px; border-radius: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); width: 90%; max-width: 400px;}
+    input {width: 100%; padding: 12px; margin: 10px 0; font-size: 16px; border-radius: 10px; border: 1px solid #ccc; box-sizing: border-box;}
+    button {width: 100%; padding: 14px; font-size: 18px; border: none; border-radius: 10px; background-color: #4CAF50; color: white; cursor: pointer; margin-top: 15px; transition: 0.3s;}
+    button:hover {background-color: #45a049;}
+    button:disabled {background-color: #aaa; cursor: not-allowed;}
+    #message {margin-top: 20px; font-size: 18px; color: #333; min-height: 24px;}
   </style>
 </head>
 <body>
   <div id="container">
     <h2>تسجيل حضور وانصراف</h2>
-
-    <!-- زر Google Sign-In -->
     <div id="googleBtn"></div>
 
-    <!-- النموذج بعد تسجيل الدخول -->
-    <div id="formSection" style="display:none">
-      <input id="email" type="email" placeholder="الإيميل" readonly />
-      <input id="doctor" type="text" placeholder="أدخل اسم الدكتور" />
+    <div id="formSection" style="display:none;">
+      <input type="email" id="email" placeholder="الإيميل" readonly>
+      <input type="text" id="doctor" placeholder="أدخل اسم الدكتور">
       <button id="registerBtn">تسجيل</button>
       <div id="message"></div>
     </div>
   </div>
 
-<script>
-/* ------------------------------------------------------------------
-  اضبط هذا الرابط إلى رابط Web App الخاص بك لو تغير
-  (رابطك الحالي الذي أعطيته: AKfycbx.../exec)
--------------------------------------------------------------------*/
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec";
+  <script>
+    const GITHUB_PAGES_URL = "https://hossammahmoud926-debug.github.io/attendance_app/";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec";
 
-/* ------------------------------------------------------------------
-  كل الأماكن (نسختها كاملة من كودك). لو عايز تضيف اسم/إحداثيات جديدة،
-  ضيف عنصر جديد بنفس الشكل {name, lat, lng}
--------------------------------------------------------------------*/
-const places = [
-  {name: "الوحدة الصحية: الشوبك الغربي", lat: 29.780919, lng: 31.278475},
-  {name: "الوحدة الصحية: أبو رجوان قبلي", lat: 29.770280, lng: 31.267013},
-  {name: "الوحدة الصحية: المرازيق", lat: 29.814147, lng: 31.255456},
-  {name: "الوحدة الصحية: كفر زهران", lat: 29.813962, lng: 31.267850},
-  {name: "الوحدة الصحية: العزيزية", lat: 29.772818, lng: 31.274100},
-  {name: "الوحدة الصحية: نزلة الشوبك", lat: 29.756137, lng: 31.262556},
-  {name: "الوحدة الصحية: أبو رجوان بحري", lat: 29.787006, lng: 31.269636},
-  {name: "الوحدة الصحية: سقارة", lat: 29.854717, lng: 31.228076},
-  {name: "الوحدة الصحية: الشنباب", lat: 29.831932, lng: 31.256685},
-  {name: "الوحدة الصحية: منشأة دهشور", lat: 29.796878, lng: 31.243665},
-  {name: "الوحدة الصحية: دهشور", lat: 29.750484, lng: 31.238552},
-  {name: "الوحدة الصحية: مزغونة", lat: 29.740945, lng: 31.260663},
-  {name: "الوحدة الصحية: زاوية دهشور", lat: 29.750894, lng: 31.235090},
-  {name: "الوحدة الصحية: الرعاية", lat: 29.850886, lng: 31.271462},
-  {name: "الوحدة الصحية: مكتب الصحة", lat: 29.850494, lng: 31.271627},
-  {name: "الوحدة الصحية: أبو صير", lat: 29.892684, lng: 31.220209},
-  {name: "الوحدة الصحية: ميت رهينة", lat: 29.850584, lng: 31.245046},
-  {name: "الوحدة الصحية: منشأة كاسب", lat: 29.729669, lng: 31.235557},
-  {name: "الوحدة الصحية: شما", lat: 30.384876, lng: 30.914407},
-  {name: "الوحدة الصحية: الجديد", lat: 0, lng: 0}
-];
+    const places = [
+      {name: "الوحدة الصحية: الشوبك الغربي", lat: 29.780919, lng: 31.278475},
+      {name: "الوحدة الصحية: أبو رجوان قبلي", lat: 29.770280, lng: 31.267013},
+      {name: "الوحدة الصحية: المرازيق", lat: 29.814147, lng: 31.255456},
+      {name: "الوحدة الصحية: كفر زهران", lat: 29.813962, lng: 31.267850},
+      {name: "الوحدة الصحية: العزيزية", lat: 29.772818, lng: 31.274100},
+      {name: "الوحدة الصحية: نزلة الشوبك", lat: 29.756137, lng: 31.262556},
+      {name: "الوحدة الصحية: أبو رجوان بحري", lat: 29.787006, lng: 31.269636},
+      {name: "الوحدة الصحية: سقارة", lat: 29.854717, lng: 31.228076},
+      {name: "الوحدة الصحية: الشنباب", lat: 29.831932, lng: 31.256685},
+      {name: "الوحدة الصحية: منشأة دهشور", lat: 29.796878, lng: 31.243665},
+      {name: "الوحدة الصحية: دهشور", lat: 29.750484, lng: 31.238552},
+      {name: "الوحدة الصحية: مزغونة", lat: 29.740945, lng: 31.260663},
+      {name: "الوحدة الصحية: زاوية دهشور", lat: 29.750894, lng: 31.235090},
+      {name: "الوحدة الصحية: الرعاية", lat: 29.850886, lng: 31.271462},
+      {name: "الوحدة الصحية: مكتب الصحة", lat: 29.850494, lng: 31.271627},
+      {name: "الوحدة الصحية: أبو صير", lat: 29.892684, lng: 31.220209},
+      {name: "الوحدة الصحية: ميت رهينة", lat: 29.850584, lng: 31.245046},
+      {name: "الوحدة الصحية: منشأة كاسب", lat: 29.729669, lng: 31.235557},
+      {name: "الوحدة الصحية: شما", lat: 30.384876, lng: 30.914407},
+      {name: "الوحدة الصحية: الجديد", lat: 0, lng: 0}
+    ];
 
-/* حساب المسافة بين نقطتين بالمتر (Haversine) */
-function getDistanceMeters(lat1, lon1, lat2, lon2){
-  const R = 6371000; // متر
-  const toRad = v => v * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat/2)2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-
-/* Google Identity initialization */
-window.onload = () => {
-  google.accounts.id.initialize({
-    client_id: "573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com",
-    callback: handleCredentialResponse
-  });
-  google.accounts.id.renderButton(document.getElementById("googleBtn"), {theme: "outline", size: "large", text: "continue_with"});
-  google.accounts.id.prompt();
-};
-
-function handleCredentialResponse(response){
-  try {
-    const payload = parseJwt(response.credential);
-    document.getElementById("email").value = payload.email || "";
-    document.getElementById("formSection").style.display = "block";
-    document.getElementById("googleBtn").style.display = "none";
-  } catch(e){
-    console.error(e);
-  }
-}
-
-/* بسيط لفك الـ JWT */
-function parseJwt(token){
-  const base64Url = token.split('.')[1] || "";
-  const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
-  const json = decodeURIComponent(atob(base64 || "").split('').map(c=> '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-  return JSON.parse(json || '{}');
-}
-
-/* زر التسجيل */
-const btn = document.getElementById("registerBtn");
-const msg = document.getElementById("message");
-
-btn.addEventListener("click", () => {
-  msg.textContent = "⏳ جاري تحديد موقعك...";
-  btn.disabled = true;
-
-  const email = document.getElementById("email").value.trim();
-  const doctor = document.getElementById("doctor").value.trim();
-  if(!email){
-    msg.textContent = "⚠️ الرجاء تسجيل الدخول بحساب Google أولا";
-    btn.disabled = false;
-    return;
-  }
-  if(!doctor){
-    msg.textContent = "⚠️ الرجاء إدخال اسم الدكتور";
-    btn.disabled = false;
-    return;
-  }
-
-  if(!navigator.geolocation){
-    msg.textContent = "⚠️ متصفحك لا يدعم تحديد الموقع";
-    btn.disabled = false;
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(position => {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
-
-    // البحث عن أقرب مكان داخل 100 متر
-    let found = null;
-    for(let p of places){
-      const d = getDistanceMeters(lat, lng, p.lat, p.lng);
-      if(d <= 100){
-        found = {place: p.name, distance: Math.round(d)};
-        break;
-      }
-    }
-
-    if(!found){
-      msg.textContent = "🚫 خارج نطاق الخدمة (أبعد من 100 متر)";
-      btn.disabled = false;
-      return;
-    }
-
-    // بناء البيانات وإرسالها إلى Apps Script
-    const payload = {
-      email: email,
-      doctor: doctor,
-      lat: lat,
-      lng: lng,
-      place: found.place
+    window.onload = function() {
+      google.accounts.id.initialize({
+        client_id: "573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com",
+        callback: handleCredentialResponse,
+        ux_mode: 'popup',
+        origin: GITHUB_PAGES_URL
+      });
+      google.accounts.id.renderButton(document.getElementById("googleBtn"), {theme: "outline", size:"large", text:"continue_with"});
+      google.accounts.id.prompt();
     };
 
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(res => {
-      // إذا السكربت رجع رسالة ناجحة استخدمها، وإلا استخدم رسالة افتراضية
-      if(res && res.success){
-        msg.textContent = "✅ تم تسجيل حضورك في " + found.place + " ✓";
-      } else if(res && res.message){
-        msg.textContent = res.message;
-      } else {
-        msg.textContent = "✅ تم تسجيل حضورك في " + found.place + " ✓";
-      }
-      btn.disabled = false;
-    })
-    .catch(err => {
-      console.error(err);
-      msg.textContent = "⚠️ حدث خطأ أثناء إرسال البيانات إلى الخادم";
-      btn.disabled = false;
-    });
+function handleCredentialResponse(response) {
+      const payload = parseJwt(response.credential);
+      document.getElementById("email").value = payload.email;
+      document.getElementById("formSection").style.display = "block";
+      document.getElementById("googleBtn").style.display = "none";
+    }
 
-  }, err => {
-    console.error(err);
-    msg.textContent = "⚠️ لم نتمكن من الحصول على موقعك — افحص السماحيات أو جرب مرة أخرى";
-    btn.disabled = false;
-  }, {enableHighAccuracy:true, timeout:15000, maximumAge:0});
-});
-</script>
+    function parseJwt(token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(jsonPayload);
+    }
+
+    function distance(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const toRad = x => x * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    const btn = document.getElementById('registerBtn');
+    const message = document.getElementById('message');
+
+    btn.addEventListener('click', () => {
+      const email = document.getElementById('email').value.trim();
+      const doctor = document.getElementById('doctor').value.trim();
+      if (!email || !doctor) {message.textContent="⚠️ الرجاء إدخال اسم الدكتور"; return;}
+
+      btn.disabled=true;
+      message.textContent="⏳ جاري التحقق من موقعك...";
+
+      navigator.geolocation.getCurrentPosition(pos=>{
+        const {latitude, longitude}=pos.coords;
+        let found=null;
+        for (let p of places) {
+          const dist = distance(latitude, longitude, p.lat, p.lng);
+          if(dist<=100){found=p; break;}
+        }
+
+        if(found){
+          const data={email, doctor, place: found.name};
+          fetch(scriptURL,{method:"POST",body:JSON.stringify(data),headers:{"Content-Type":"application/json"}})
+            .then(r=>r.json())
+            .then(res=>{message.textContent="✅ تم تسجيل حضورك في "+found.name; btn.disabled=false;})
+            .catch(()=>{message.textContent="⚠️ حدث خطأ"; btn.disabled=false;});
+        } else {message.textContent="🚫 خارج نطاق الخدمة"; btn.disabled=false;}
+      },err=>{message.textContent="⚠️ لم يتم الحصول على موقعك"; btn.disabled=false;});
+    });
+  </script>
 </body>
 </html>
