@@ -23,7 +23,7 @@
   <div id="g_id_onload"
        data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
        data-callback="handleCredentialResponse"
-       data-auto_prompt="false">
+       data-auto_prompt="true">
   </div>
   <div class="g_id_signin" data-type="standard"></div>
 
@@ -40,18 +40,23 @@
 </div>
 
 <script>
+  // بعد تسجيل الدخول بـ Google، يظهر الإيميل تلقائي
   function handleCredentialResponse(response) {
     const jwt = parseJwt(response.credential);
     document.getElementById('email').value = jwt.email;
   }
 
+  // دالة لفك ترميز JWT
   function parseJwt (token) {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
     return JSON.parse(jsonPayload);
   }
 
+  // زر التسجيل
   document.getElementById('submitBtn').addEventListener('click', function() {
     const email = document.getElementById('email').value;
     const doctor = document.getElementById('doctor').value;
@@ -73,7 +78,7 @@
         })
         .then(response => response.json())
         .then(data => {
-          let messageEl = document.getElementById('message');
+          const messageEl = document.getElementById('message');
           if(data.success){
             messageEl.innerHTML = <span>✅</span> ${data.message};
           } else {
