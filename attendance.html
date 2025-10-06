@@ -7,18 +7,20 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    .container { background: #fff; padding: 20px 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+    .container { background: #fff; padding: 20px 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align:center; }
     input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
     button { background: #007bff; color: #fff; border: none; cursor: pointer; }
     button:hover { background: #0056b3; }
-    .message { margin-top: 15px; font-weight: bold; }
+    .message { margin-top: 15px; font-weight: bold; font-size: 16px; }
+    .success { color: green; }
+    .error { color: red; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>تسجيل حضور وانصراف</h2>
 
-    <!-- زر تسجيل الدخول بـ Google -->
+    <!-- Google Sign-In -->
     <div id="g_id_onload"
          data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
@@ -26,13 +28,8 @@
     </div>
     <div class="g_id_signin" data-type="standard"></div>
 
-    <!-- خانة الإيميل -->
     <input type="email" id="email" placeholder="الإيميل" readonly>
-
-    <!-- خانة اسم الدكتور -->
     <input type="text" id="doctor" placeholder="اسم الدكتور">
-
-    <!-- زر تسجيل -->
     <button id="submitBtn">تسجيل</button>
 
     <div class="message" id="message"></div>
@@ -56,6 +53,9 @@
     document.getElementById('submitBtn').addEventListener('click', function() {
       const email = document.getElementById('email').value;
       const doctor = document.getElementById('doctor').value;
+      const messageEl = document.getElementById('message');
+      messageEl.textContent = '';
+
       if (!email) { alert('الرجاء تسجيل الدخول أولاً'); return; }
       if (!doctor) { alert('الرجاء إدخال اسم الدكتور'); return; }
 
@@ -74,10 +74,17 @@
           })
           .then(res => res.json())
           .then(data => {
-            document.getElementById('message').textContent = data.message;
+            if (data.success) {
+              messageEl.textContent = "✅ " + data.message;
+              messageEl.className = "message success";
+            } else {
+              messageEl.textContent = "❌ " + data.message;
+              messageEl.className = "message error";
+            }
           })
           .catch(err => {
-            document.getElementById('message').textContent = "حدث خطأ أثناء التسجيل";
+            messageEl.textContent = "❌ حدث خطأ أثناء التسجيل";
+            messageEl.className = "message error";
             console.error(err);
           });
 
