@@ -13,6 +13,7 @@
   body { font-family: Arial, sans-serif; background: #f0f2f5; text-align:center; padding:30px; }
   h1 { color: #333; }
   #dashboard { display:none; margin-top:20px; }
+  input { padding:8px; font-size:16px; margin-top:10px; width:250px; }
   button { padding:10px 20px; margin-top:20px; font-size:16px; cursor:pointer; }
   #message { margin-top:20px; font-weight:bold; color:green; }
 </style>
@@ -32,17 +33,16 @@
 
 <!-- صفحة بعد تسجيل الدخول -->
 <div id="dashboard">
-  <h2>مرحبًا <span id="doctorName"></span></h2>
   <p>الإيميل: <span id="doctorEmail"></span></p>
+  <p>اسم الدكتور: <input type="text" id="doctorNameInput" placeholder="اكتب اسمك هنا"></p>
   <button id="markAttendance">تسجيل الحضور / الانصراف</button>
   <div id="message"></div>
 </div>
 
 <script>
 let doctorEmail = "";
-let doctorName = "";
 
-// دالة التعامل مع تسجيل الدخول
+// بعد تسجيل الدخول بالجيميل
 function handleCredentialResponse(response) {
   if(!response.credential){
     alert("⚠️ فشل تسجيل الدخول");
@@ -51,17 +51,21 @@ function handleCredentialResponse(response) {
 
   const decoded = parseJwt(response.credential);
   doctorEmail = decoded.email;
-  doctorName = decoded.name || decoded.email.split("@")[0];
 
-  // إخفاء صفحة تسجيل الدخول وعرض لوحة التحكم
+  // عرض الصفحة الثانية
   document.getElementById('login').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
-  document.getElementById('doctorName').innerText = doctorName;
   document.getElementById('doctorEmail').innerText = doctorEmail;
 }
 
-// عند الضغط على زر تسجيل الحضور / الانصراف
+// عند الضغط على زر التسجيل
 document.getElementById('markAttendance').addEventListener('click', () => {
+  const doctorName = document.getElementById('doctorNameInput').value.trim();
+  if(!doctorName){
+    alert("⚠️ من فضلك اكتب اسم الدكتور");
+    return;
+  }
+
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(pos => {
       const data = {
@@ -71,6 +75,7 @@ document.getElementById('markAttendance').addEventListener('click', () => {
         lng: pos.coords.longitude
       };
 
+      // رابط Web App موجود داخل الكود
       fetch("https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec", {
         method: "POST",
         body: JSON.stringify(data)
@@ -80,7 +85,7 @@ document.getElementById('markAttendance').addEventListener('click', () => {
         if(res.success){
           document.getElementById('message').innerText = ✅ تم تسجيل ${res.type} في ${res.place};
         } else {
-          document.getElementById('message').innerText = ⚠️ ${res.message};
+          document.getElementById('message').innerText = "⚠️ " + res.message;
         }
       })
       .catch(err => {
