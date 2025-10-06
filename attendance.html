@@ -24,7 +24,9 @@
   <div id="login">
     <div id="g_id_onload"
          data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse">
+         data-login_uri=""
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="true">
     </div>
     <div class="g_id_signin" data-type="standard"></div>
   </div>
@@ -40,6 +42,13 @@
   <script>
     let doctorEmail = "";
     let doctorName = "";
+
+    // التأكد أن مكتبة GSI تم تحميلها قبل تفعيل الزر
+    window.onload = () => {
+      if(typeof google === 'undefined'){
+        alert("⚠️ لم يتم تحميل مكتبة Google Sign-In، تأكد من الإنترنت والمتصفح.");
+      }
+    }
 
     // دالة التعامل مع تسجيل الدخول
     function handleCredentialResponse(response) {
@@ -70,7 +79,6 @@
             lng: pos.coords.longitude
           };
 
-          // إرسال البيانات مباشرة للـ Apps Script Web App
           fetch("https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec", {
             method: "POST",
             body: JSON.stringify(data)
