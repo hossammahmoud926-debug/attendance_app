@@ -12,41 +12,60 @@
   <style>
     body { font-family: Arial, sans-serif; background: #f0f2f5; text-align:center; padding:30px; }
     h1 { color: #333; }
+    #dashboard { display:none; margin-top:20px; }
     button { padding:10px 20px; margin-top:20px; font-size:16px; cursor:pointer; }
-    #message { margin-top:20px; font-weight:bold; }
-    a { color: #0077cc; text-decoration: none; }
+    #message { margin-top:20px; font-weight:bold; color:green; }
   </style>
 </head>
 <body>
   <h1>نظام حضور وانصراف</h1>
 
-  <!-- زر تسجيل الدخول بجوجل -->
-  <div id="g_id_onload"
-       data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
-       data-callback="handleCredentialResponse">
+  <!-- صفحة تسجيل الدخول -->
+  <div id="login">
+    <div id="g_id_onload"
+         data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
   </div>
-  <div class="g_id_signin" data-type="standard"></div>
 
-  <div id="message"></div>
+  <!-- صفحة بعد تسجيل الدخول -->
+  <div id="dashboard">
+    <h2>مرحبًا <span id="doctorName"></span></h2>
+    <p>الإيميل: <span id="doctorEmail"></span></p>
+    <button id="markAttendance">تسجيل الحضور / الانصراف</button>
+    <div id="message"></div>
+  </div>
 
   <script>
-    // دالة التعامل مع تسجيل الدخول بجوجل
+    let doctorEmail = "";
+    let doctorName = "";
+
+    // دالة التعامل مع تسجيل الدخول
     function handleCredentialResponse(response) {
       const decoded = parseJwt(response.credential);
-      const email = decoded.email;
-      const doctor = decoded.name || decoded.email.split("@")[0];
+      doctorEmail = decoded.email;
+      doctorName = decoded.name || decoded.email.split("@")[0];
 
-      if(!email){
-        document.getElementById('message').innerText = "⚠️ فشل تسجيل الدخول";
+      if(!doctorEmail){
+        alert("⚠️ فشل تسجيل الدخول");
         return;
       }
 
-      // الحصول على الموقع الحالي
+      // إخفاء صفحة تسجيل الدخول وعرض لوحة التحكم
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('doctorName').innerText = doctorName;
+      document.getElementById('doctorEmail').innerText = doctorEmail;
+    }
+
+    // عند الضغط على زر تسجيل الحضور / الانصراف
+    document.getElementById('markAttendance').addEventListener('click', () => {
       if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(pos => {
           const data = {
-            email: email,
-            doctor: doctor,
+            email: doctorEmail,
+            doctor: doctorName,
             lat: pos.coords.latitude,
             lng: pos.coords.longitude
           };
@@ -59,9 +78,9 @@
           .then(res => res.json())
           .then(res => {
             if(res.success){
-              document.getElementById('message').innerText = تم تسجيل ${res.type} بنجاح في ${res.place};
+              document.getElementById('message').innerText = ✅ تم تسجيل ${res.type} في ${res.place};
             } else {
-              document.getElementById('message').innerText = res.message;
+              document.getElementById('message').innerText = ⚠️ ${res.message};
             }
           })
           .catch(err => {
@@ -74,7 +93,7 @@
       } else {
         document.getElementById('message').innerText = "⚠️ جهازك لا يدعم تحديد الموقع";
       }
-    }
+    });
 
     // دالة لفك JWT من Google
     function parseJwt(token) {
