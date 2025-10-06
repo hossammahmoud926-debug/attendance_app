@@ -59,13 +59,8 @@
   <div class="container">
     <h2>تسجيل حضور وانصراف</h2>
 
-    <!-- تسجيل الدخول بـ Google -->
-    <div id="g_id_onload"
-         data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse"
-         data-auto_prompt="true"></div> <!-- ✅ تم تفعيل auto prompt -->
-
-    <div class="g_id_signin" data-type="standard"></div>
+    <!-- تسجيل الدخول بجوجل -->
+    <div id="buttonDiv"></div>
 
     <!-- خانات الإدخال -->
     <input type="email" id="email" placeholder="الإيميل" readonly>
@@ -76,13 +71,24 @@
   </div>
 
   <script>
-    // ========== تسجيل الدخول بحساب Google ==========
+    // ================== Google Sign-In ==================
+    window.onload = function () {
+      google.accounts.id.initialize({
+        client_id: "573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("buttonDiv"),
+        { theme: "outline", size: "large", text: "signin_with", locale: "ar" }
+      );
+      google.accounts.id.prompt(); // يعرض الحساب تلقائيًا
+    };
+
     function handleCredentialResponse(response) {
-      const jwt = parseJwt(response.credential);
-      document.getElementById('email').value = jwt.email;
+      const data = parseJwt(response.credential);
+      document.getElementById('email').value = data.email;
     }
 
-    // دالة فك التشفير
     function parseJwt (token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -92,17 +98,8 @@
       return JSON.parse(jsonPayload);
     }
 
-    // ✅ عرض تلقائي لحساب جوجل عند تحميل الصفحة
-    window.onload = function() {
-      google.accounts.id.initialize({
-        client_id: "573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com",
-        callback: handleCredentialResponse
-      });
-      google.accounts.id.prompt(); // يظهر اختيار الجيميل تلقائي
-    };
-
-    // ========== إرسال البيانات ==========
-    document.getElementById('submitBtn').addEventListener('click', function() {
+    // ================== إرسال البيانات ==================
+    document.getElementById('submitBtn').addEventListener('click', async () => {
       const email = document.getElementById('email').value.trim();
       const doctor = document.getElementById('doctor').value.trim();
       const messageBox = document.getElementById('message');
@@ -111,48 +108,34 @@
       if (!doctor) return alert('الرجاء إدخال اسم الدكتور');
 
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (position) => {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
 
-          const webAppUrl = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec";
+          const url = https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec?email=${email}&doctor=${doctor}&lat=${lat}&lng=${lng};
 
           try {
-            const res = await fetch(webAppUrl + ?email=${email}&doctor=${doctor}&lat=${latitude}&lng=${longitude});
+            const res = await fetch(url);
             const data = await res.json();
 
-// ✅ حالة الحضور
             if (data.status === "success") {
-              messageBox.innerHTML = ✔️ تم تسجيل حضورك بنجاح في ${data.location};
-              messageBox.className = "message success";
-            }
-            // ✅ حالة الانصراف
-            else if (data.status === "leave") {
-              messageBox.innerHTML = ✔️ تم انصرافك من ${data.location};
-              messageBox.className = "message success";
-            }
-            // ❌ خارج النطاق
-            else if (data.status === "out_of_range") {
-              messageBox.innerHTML = ❌ غير موجود في نطاق ${data.location};
-              messageBox.className = "message error";
-            }
-            // ⚠️ خطأ عام
-            else {
-              messageBox.innerHTML = ⚠️ حدث خطأ أثناء التسجيل;
-              messageBox.className = "message error";
-            }
+              messageBox.innerHTML = ✔️ ${data.message};
 
+messageBox.className = "message success";
+            } else if (data.status === "out_of_range") {
+              messageBox.innerHTML = ❌ ${data.message};
+              messageBox.className = "message error";
+            } else {
+              messageBox.innerHTML = ⚠️ ${data.message || 'حدث خطأ أثناء التسجيل'};
+              messageBox.className = "message error";
+            }
           } catch (err) {
-            console.error(err);
-            messageBox.textContent = "⚠️ حدث خطأ أثناء الاتصال بالخادم";
+            messageBox.innerHTML = "⚠️ حدث خطأ في الاتصال بالخادم";
             messageBox.className = "message error";
           }
-
-        }, () => {
-          alert('الرجاء السماح بالوصول للموقع لتسجيل الحضور');
-        });
+        }, () => alert('يرجى السماح بالوصول إلى الموقع'));
       } else {
-        alert('المتصفح لا يدعم خدمة تحديد الموقع.');
+        alert('المتصفح لا يدعم تحديد الموقع الجغرافي');
       }
     });
   </script>
