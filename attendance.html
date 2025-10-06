@@ -4,72 +4,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل حضور وانصراف</title>
+  <title>Attendance App</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <meta name="google-signin-client_id" content="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com">
-
   <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #e0f7fa, #80deea);
-      margin: 0;
-    }
-    #container {
-      text-align: center;
-      background: #fff;
-      padding: 30px 40px;
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-      width: 90%;
-      max-width: 400px;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      background-color: #4CAF50;
-      color: white;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: 0.3s;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    button:disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
-    }
-    #message {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #333;
-      min-height: 24px;
-    }
+    body { display:flex; justify-content:center; align-items:center; height:100vh; font-family:Arial,sans-serif; background:#e0f7fa; margin:0;}
+    #container { text-align:center; background:#fff; padding:30px 40px; border-radius:20px; box-shadow:0 6px 20px rgba(0,0,0,0.25); width:90%; max-width:400px;}
+    input { width:100%; padding:12px; margin:10px 0; font-size:16px; border-radius:10px; border:1px solid #ccc; box-sizing:border-box;}
+    button { width:100%; padding:14px; font-size:18px; border:none; border-radius:10px; background-color:#4CAF50; color:white; cursor:pointer; margin-top:15px;}
+    button:hover { background-color:#45a049; }
+    button:disabled { background-color:#aaa; cursor:not-allowed; }
+    #message { margin-top:20px; font-size:18px; color:#333; min-height:24px; }
   </style>
 </head>
 <body>
   <div id="container">
     <h2>تسجيل دخول</h2>
     <div id="googleBtn"></div>
-    
+
     <div id="formSection" style="display:none;">
-      <input type="email" id="email" placeholder="أدخل الإيميل" required readonly>
+      <input type="email" id="email" readonly>
       <input type="text" id="doctor" placeholder="أدخل اسم الدكتور" required>
       <button id="registerBtn">تسجيل</button>
       <div id="message"></div>
@@ -77,83 +31,68 @@
   </div>
 
   <script>
-    const GITHUB_PAGES_URL = "https://hossammahmoud926-debug.github.io/attendance_app/"; // رابط GitHub Pages
+    const GITHUB_PAGES_URL = "https://hossammahmoud926-debug.github.io/attendance_app/attendance.html"; // رابط GitHub Pages
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec"; // رابط Web App App Script
 
+    // Google Sign-In
     window.onload = function() {
       google.accounts.id.initialize({
         client_id: "573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com",
         callback: handleCredentialResponse,
-        ux_mode: 'popup',
-        origin: GITHUB_PAGES_URL // مهم لإزالة مشكلة origin_mismatch
+        ux_mode:'popup',
+        origin: GITHUB_PAGES_URL
       });
-      
-      google.accounts.id.renderButton(
-        document.getElementById("googleBtn"),
-        { theme: "outline", size: "large", text: "continue_with" }
-      );
-      
-      google.accounts.id.prompt(); // يظهر اختيار الحساب تلقائي
+      google.accounts.id.renderButton(document.getElementById("googleBtn"), {theme:"outline", size:"large", text:"continue_with"});
+      google.accounts.id.prompt();
     };
 
     function handleCredentialResponse(response) {
       const payload = parseJwt(response.credential);
       document.getElementById("email").value = payload.email;
-      document.getElementById("formSection").style.display = "block";
-      document.getElementById("googleBtn").style.display = "none";
+      document.getElementById("formSection").style.display="block";
+      document.getElementById("googleBtn").style.display="none";
     }
 
     function parseJwt(token) {
       const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
+      const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
       return JSON.parse(jsonPayload);
     }
 
     const btn = document.getElementById('registerBtn');
     const message = document.getElementById('message');
 
-    btn.addEventListener('click', () => {
+    btn.onclick = () => {
       const email = document.getElementById('email').value.trim();
       const doctor = document.getElementById('doctor').value.trim();
+      if(!email || !doctor) { message.textContent="⚠️ الرجاء إدخال اسم الدكتور"; return; }
 
-      if (!email || !doctor) {
-        message.textContent = "⚠️ الرجاء إدخال اسم الدكتور";
-        return;
-      }
+      btn.disabled=true;
+      message.textContent="⏳ جاري التحقق من موقعك...";
 
-      btn.disabled = true;
-      message.textContent = "⏳ جاري التحميل...";
+      navigator.geolocation.getCurrentPosition(pos => {
+        const {latitude, longitude} = pos.coords;
+        const data = {email, doctor, lat: latitude, lng: longitude};
 
-if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-          const data = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            doctor: doctor,
-            email: email
-          };
+        fetch(WEB_APP_URL,{
+          method:"POST",
+          body:JSON.stringify(data),
+          headers:{"Content-Type":"application/json"}
+        })
+        .then(r=>r.json())
+        .then(res=>{
+          if(res.success)
+message.textContent = "✅ تم تسجيل " + res.type + " في " + res.place;
+          } else {
+            message.textContent = "🚫 " + res.message;
+          }
+          btn.disabled=false;
+        })
+        .catch(()=>{message.textContent="⚠️ حدث خطأ أثناء الاتصال"; btn.disabled=false;});
 
-// هنا تضيف Google Apps Script function
-          google.script.run.withSuccessHandler(res => {
-            if (res.success) {
-              message.textContent = "✅ تم تسجيل " + res.type + " بنجاح في " + res.place;
-            } else {
-              message.textContent = "⚠️ " + res.message;
-            }
-            btn.disabled = false;
-          }).registerAttendance(data);
-
-        }, error => {
-          message.textContent = "⚠️ لم يتم الحصول على موقعك";
-          btn.disabled = false;
-        });
-      } else {
-        message.textContent = "⚠️ متصفحك لا يدعم تحديد الموقع";
-        btn.disabled = false;
-      }
-    });
+      }, err=>{message.textContent="⚠️ لم يتم الحصول على موقعك"; btn.disabled=false;});
+    };
   </script>
 </body>
 </html>
