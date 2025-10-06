@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -21,7 +20,6 @@
   <div class="container">
     <h2>تسجيل حضور وانصراف</h2>
 
-    <!-- زر تسجيل الدخول بـ Google -->
     <div id="g_id_onload"
          data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
@@ -29,26 +27,18 @@
     </div>
     <div class="g_id_signin" data-type="standard"></div>
 
-    <!-- خانة الإيميل -->
     <input type="email" id="email" placeholder="الإيميل" readonly>
-
-    <!-- خانة اسم الدكتور -->
     <input type="text" id="doctor" placeholder="اسم الدكتور">
-
-    <!-- زر تسجيل -->
     <button id="submitBtn">تسجيل</button>
-
     <div class="message" id="message"></div>
   </div>
 
   <script>
-    // بعد تسجيل الدخول، يظهر الإيميل تلقائي
     function handleCredentialResponse(response) {
       const jwt = parseJwt(response.credential);
       document.getElementById('email').value = jwt.email;
     }
 
-    // دالة لفك ترميز JWT
     function parseJwt (token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -58,7 +48,6 @@
       return JSON.parse(jsonPayload);
     }
 
-    // زر التسجيل
     document.getElementById('submitBtn').addEventListener('click', function() {
       const email = document.getElementById('email').value;
       const doctor = document.getElementById('doctor').value;
@@ -67,24 +56,16 @@
       if (!email) { alert('الرجاء تسجيل الدخول أولاً'); return; }
       if (!doctor) { alert('الرجاء إدخال اسم الدكتور'); return; }
 
-      // الحصول على الموقع الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
-
-          // إرسال البيانات للـ Apps Script Web App
           const webAppUrl = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec";
 
           fetch(webAppUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: email,
-              doctor: doctor,
-              latitude: latitude,
-              longitude: longitude
-            })
+            body: JSON.stringify({ email, doctor, latitude, longitude })
           })
           .then(res => res.json())
           .then(data => {
@@ -96,15 +77,12 @@
               messageDiv.className = "message error";
             }
           })
-          .catch((err) => {
+          .catch(() => {
             messageDiv.textContent = "حدث خطأ أثناء التسجيل";
             messageDiv.className = "message error";
-            console.error(err);
-          })
-          
-}, function() {
-          alert('الرجاء السماح بالوصول للموقع لتسجيل الحضور');
-        });
+          });
+
+        }, () => alert('الرجاء السماح بالوصول للموقع لتسجيل الحضور'));
       } else {
         alert('المتصفح لا يدعم خدمة تحديد الموقع.');
       }
