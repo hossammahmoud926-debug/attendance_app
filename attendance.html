@@ -14,7 +14,12 @@
     button:hover { background: #0056b3; }
     button:disabled { background: #ccc; cursor: not-allowed; }
     .message { margin-top: 15px; font-weight: bold; text-align: center; min-height: 20px; }
-    .g_id_signin { direction: ltr; margin: 10px auto; }
+    
+    /* تنسيق زر جوجل الجديد */
+    #google-signin-btn {
+        width: 100%;
+        margin: 10px 0;
+    }
   </style>
 </head>
 <body>
@@ -24,9 +29,22 @@
     <div id="g_id_onload"
          data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
-         data-auto_prompt="false">
+         data-auto_prompt="false"
+         data-auto_select="true"
+         data-login_uri="">
     </div>
-    <div class="g_id_signin" data-type="standard"></div>
+
+    <div id="google-signin-btn">
+        <div class="g_id_signin" 
+             data-type="standard" 
+             data-size="large" 
+             data-text="signin_with" 
+             data-shape="rectangular" 
+             data-theme="outline"
+             data-locale="ar">
+        </div>
+    </div>
+
 
     <input type="email" id="email" placeholder="الإيميل" readonly>
 
@@ -41,14 +59,14 @@
     const messageDiv = document.getElementById('message');
     const submitBtn = document.getElementById('submitBtn');
 
-    // بعد تسجيل الدخول، يظهر الإيميل تلقائي مع رسالة تأكيد <-- تعديل هنا
+    // بعد تسجيل الدخول، يظهر الإيميل تلقائي مع رسالة تأكيد
     function handleCredentialResponse(response) {
       const jwt = parseJwt(response.credential);
       const emailInput = document.getElementById('email');
       
       // تعبئة الإيميل
       emailInput.value = jwt.email;
-      emailInput.style.backgroundColor = '#e6ffe6'; // إبراز الحقل بلون فاتح
+      emailInput.style.backgroundColor = '#e6ffe6'; 
       
       // رسالة تأكيد تسجيل الدخول
       messageDiv.textContent = '✅ تم تسجيل الدخول بنجاح. أدخل اسم الدكتور ثم اضغط "تسجيل".';
@@ -81,16 +99,15 @@
       messageDiv.textContent = '⏳ جاري إرسال البيانات...';
       messageDiv.style.color = '#ff9900';
 
-      // الحصول على الموقع الحالي
+// الحصول على الموقع الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-// إرسال البيانات للـ Apps Script Web App
+          // إرسال البيانات للـ Apps Script Web App
           fetch(webAppUrl, {
             method: 'POST',
-            // تم تغيير وضع 'no-cors' ليسمح بقراءة استجابة الخادم
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               email: email,
@@ -101,13 +118,13 @@
           })
           .then(response => {
             if (!response.ok) {
+              // هذا يحدث فقط إذا كان الخطأ من ناحية الاتصال (Network) وليس من Apps Script
               throw new Error("حدث خطأ في الاتصال بالخادم");
             }
-            // يجب أن يعود Apps Script باستجابة JSON قابلة للقراءة
             return response.json();
           })
           .then(result => {
-            // استخدام رسالة الـ Apps Script مباشرة مع الأيقونة المناسبة <-- تعديل هنا
+            // عرض الرسالة الدقيقة من Apps Script (سواء نجاح ✅ أو فشل ❌)
             if (result.success) {
               messageDiv.textContent = ✅ ${result.message};
               messageDiv.style.color = 'green';
@@ -117,7 +134,6 @@
             }
           })
           .catch((err) => {
-            // رسالة خطأ عامة
             messageDiv.textContent = "❌ حدث خطأ أثناء التسجيل أو في الاتصال";
             messageDiv.style.color = 'red';
             console.error(err);
