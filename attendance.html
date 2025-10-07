@@ -15,12 +15,13 @@
     button:disabled { background: #ccc; cursor: not-allowed; }
     .message { margin-top: 15px; font-weight: bold; text-align: center; min-height: 20px; }
     
-    /* تنسيق زر جوجل القياسي ليملأ العرض */
+    /* توسيط زر جوجل */
     .g_id_signin { 
         direction: ltr; 
         margin: 10px auto; 
         display: block; 
         width: 100%; 
+        max-width: 300px; 
     }
   </style>
 </head>
@@ -31,8 +32,7 @@
     <div id="g_id_onload"
          data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
-         data-auto_prompt="false"
-         data-login_uri="">
+         data-auto_prompt="true"      data-auto_select="true"     data-login_uri="">
     </div>
 
     <div class="g_id_signin" 
@@ -57,7 +57,7 @@
     const messageDiv = document.getElementById('message');
     const submitBtn = document.getElementById('submitBtn');
 
-    // هذه الدالة تستقبل بيانات الإيميل بعد الضغط على زر تسجيل الدخول
+    // الدالة المسؤولة عن ملء الإيميل بعد تسجيل الدخول بنجاح
     function handleCredentialResponse(response) {
       const jwt = parseJwt(response.credential);
       const emailInput = document.getElementById('email');
@@ -85,6 +85,7 @@
     submitBtn.addEventListener('click', function() {
       const email = document.getElementById('email').value;
       const doctor = document.getElementById('doctor').value;
+      // تأكد أن هذا الرابط هو رابط Apps Script المنشور لديك
       const webAppUrl = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec";
 
       // التحقق من الإدخالات
@@ -96,7 +97,7 @@
       submitBtn.textContent = '... جاري التسجيل';
       messageDiv.textContent = '⏳ جاري إرسال البيانات...';
       messageDiv.style.color = '#ff9900';
-      
+
 // الحصول على الموقع الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
