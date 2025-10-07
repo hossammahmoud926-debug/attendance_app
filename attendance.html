@@ -15,10 +15,12 @@
     button:disabled { background: #ccc; cursor: not-allowed; }
     .message { margin-top: 15px; font-weight: bold; text-align: center; min-height: 20px; }
     
-    /* تنسيق زر جوجل الجديد */
-    #google-signin-btn {
-        width: 100%;
-        margin: 10px 0;
+    /* توسيط أيقونة جوجل */
+    .g_id_signin { 
+        direction: ltr; 
+        margin: 10px auto; 
+        display: block; 
+        width: fit-content;
     }
   </style>
 </head>
@@ -29,22 +31,14 @@
     <div id="g_id_onload"
          data-client_id="573694224261-fv08344h3d0u6t8nebmtre9r2fkkoi1l.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
-         data-auto_prompt="false"
-         data-auto_select="true"
-         data-login_uri="">
+         data-auto_prompt="true"      data-auto_select="true"     data-login_uri="">
     </div>
 
-    <div id="google-signin-btn">
-        <div class="g_id_signin" 
-             data-type="standard" 
-             data-size="large" 
-             data-text="signin_with" 
-             data-shape="rectangular" 
-             data-theme="outline"
-             data-locale="ar">
-        </div>
+    <div class="g_id_signin" 
+         data-type="icon" 
+         data-size="large" 
+         data-shape="circle">
     </div>
-
 
     <input type="email" id="email" placeholder="الإيميل" readonly>
 
@@ -59,7 +53,7 @@
     const messageDiv = document.getElementById('message');
     const submitBtn = document.getElementById('submitBtn');
 
-    // بعد تسجيل الدخول، يظهر الإيميل تلقائي مع رسالة تأكيد
+    // هذه الدالة تستقبل بيانات الإيميل سواء من Google One Tap أو من زر تسجيل الدخول
     function handleCredentialResponse(response) {
       const jwt = parseJwt(response.credential);
       const emailInput = document.getElementById('email');
@@ -69,7 +63,7 @@
       emailInput.style.backgroundColor = '#e6ffe6'; 
       
       // رسالة تأكيد تسجيل الدخول
-      messageDiv.textContent = '✅ تم تسجيل الدخول بنجاح. أدخل اسم الدكتور ثم اضغط "تسجيل".';
+      messageDiv.textContent = '✅ تم تحديد الإيميل تلقائياً بنجاح. أدخل اسم الدكتور ثم اضغط "تسجيل".';
       messageDiv.style.color = 'green';
     }
 
@@ -90,7 +84,7 @@
       const webAppUrl = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec";
 
       // التحقق من الإدخالات
-      if (!email) { messageDiv.textContent = '❌ الرجاء تسجيل الدخول أولاً'; messageDiv.style.color = 'red'; return; }
+      if (!email) { messageDiv.textContent = '❌ الرجاء تحديد الإيميل أولاً (سجل الدخول بحساب جوجل)'; messageDiv.style.color = 'red'; return; }
       if (!doctor) { messageDiv.textContent = '❌ الرجاء إدخال اسم الدكتور'; messageDiv.style.color = 'red'; return; }
 
       // إعداد حالة التحميل
@@ -99,13 +93,13 @@
       messageDiv.textContent = '⏳ جاري إرسال البيانات...';
       messageDiv.style.color = '#ff9900';
 
-// الحصول على الموقع الحالي
+      // الحصول على الموقع الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
-
-          // إرسال البيانات للـ Apps Script Web App
+          
+// إرسال البيانات للـ Apps Script Web App
           fetch(webAppUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -118,7 +112,6 @@
           })
           .then(response => {
             if (!response.ok) {
-              // هذا يحدث فقط إذا كان الخطأ من ناحية الاتصال (Network) وليس من Apps Script
               throw new Error("حدث خطأ في الاتصال بالخادم");
             }
             return response.json();
