@@ -69,14 +69,14 @@
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-          const webAppUrl = "https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec";
+          const webAppUrl = "https://script.google.com/macros/s/AKfycbwCGVL1MD_eWNTzqxZ59PepcCyB4F-1KOOeuvcsg06K1T_XqhjIY14c27BfpJusjuIMPA/exec";
 
           // تعطيل الزر مؤقتًا أثناء الإرسال
           const btn = document.getElementById('submitBtn');
           btn.disabled = true;
           btn.textContent = "جاري التسجيل...";
 
-          fetch(webAppUrl, {
+          fetch ("https://script.google.com/macros/s/AKfycbwCGVL1MD_eWNTzqxZ59PepcCyB4F-1KOOeuvcsg06K1T_XqhjIY14c27BfpJusjuIMPA/exec") {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, doctor, latitude, longitude })
@@ -104,3 +104,4 @@
   </script>
 </body>
 </html>
+
