@@ -41,26 +41,20 @@
   </div>
 
   <script>
-    // رابط Web App الكامل
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyy4WSuMg3_hs1jYapLb3H6jEZa6v0J5AjSUwrmfT2hipWuid2PBvTjzW3NoLj4qPK2sA/exec";
 
-    // بعد تسجيل الدخول، يظهر الإيميل تلقائي
     function handleCredentialResponse(response) {
       const jwt = parseJwt(response.credential);
       document.getElementById('email').value = jwt.email;
     }
 
-    // دالة لفك ترميز JWT
     function parseJwt(token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
       return JSON.parse(jsonPayload);
     }
 
-    // زر التسجيل
     document.getElementById('submitBtn').addEventListener('click', function() {
       const email = document.getElementById('email').value;
       const doctor = document.getElementById('doctor').value;
@@ -74,12 +68,12 @@
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-          fetch("https://script.google.com/macros/s/AKfycbyy4WSuMg3_hs1jYapLb3H6jEZa6v0J5AjSUwrmfT2hipWuid2PBvTjzW3NoLj4qPK2sA/exec", {
-  method: 'POST',
-  mode: 'cors',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, doctor, latitude, longitude })
-})
+          fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, doctor, latitude, longitude })
+          })
           .then(response => response.json())
           .then(data => {
             if (data.success) {
@@ -106,4 +100,3 @@
   </script>
 </body>
 </html>
-
