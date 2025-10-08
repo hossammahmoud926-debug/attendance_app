@@ -3,154 +3,141 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل الحضور</title>
+  <title>تسجيل الحضور - <title>
   <style>
     body {
       font-family: "Cairo", sans-serif;
-      background: #f4f7fc;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      direction: rtl;
+      background: linear-gradient(135deg, #e0f7fa, #e3f2fd);
       text-align: center;
+      padding: 40px;
     }
     .container {
       background: white;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 420px;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 360px;
+      margin: auto;
     }
-    h2 {
-      color: #333;
-      margin-bottom: 20px;
-    }
-    input {
+    input, button {
       width: 90%;
       padding: 10px;
       margin: 10px 0;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #ccc;
+      font-size: 15px;
     }
     button {
       background: #007bff;
       color: white;
-      padding: 10px 20px;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
       cursor: pointer;
+      font-weight: bold;
     }
-    button:hover { background: #0056b3; }
+    button:hover {
+      background: #0056b3;
+    }
     .message {
       margin-top: 15px;
       font-weight: bold;
     }
+    .success { color: green; }
+    .error { color: red; }
   </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-
   <div class="container">
     <h2>تسجيل الحضور</h2>
-    <label>البريد الإلكتروني:</label>
-    <input type="email" id="email" readonly>
 
-    <label>اسم الدكتور:</label>
-    <input type="text" id="doctor" placeholder="أدخل الاسم">
+    <div id="signinDiv"></div>
 
-    <button id="registerBtn">تسجيل الحضور</button>
-    <div id="messageBox" class="message"></div>
+    <form id="attendanceForm" style="display:none;">
+      <label>البريد الإلكتروني:</label><br>
+      <input type="email" id="email" readonly><br>
+
+      <label>اسم الدكتور:</label><br>
+      <input type="text" id="doctor" placeholder="اكتب اسمك"><br>
+
+      <button type="button" onclick="sendData()">تسجيل الحضور</button>
+    </form>
+
+    <div class="message" id="message"></div>
   </div>
 
   <script>
-    // ==========================
-    // إعداد الروابط
-    // ==========================
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec";
     const GOOGLE_CLIENT_ID = "786071819345-qiftfnfup45vc92rdg5uvauf81rirt69.apps.googleusercontent.com";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec";
 
-    // ==========================
-    // تسجيل الدخول بحساب جوجل
-    // ==========================
-    window.onload = () => {
+    // تسجيل الدخول بحساب Google
+    window.onload = function() {
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse
       });
-      google.accounts.id.prompt();
+      google.accounts.id.renderButton(
+        document.getElementById("signinDiv"),
+        { theme: "outline", size: "large", text: "signin_with", shape: "pill" }
+      );
     };
 
     function handleCredentialResponse(response) {
       const data = parseJwt(response.credential);
       document.getElementById("email").value = data.email;
+      document.getElementById("signinDiv").style.display = "none";
+      document.getElementById("attendanceForm").style.display = "block";
     }
 
     function parseJwt(token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
       return JSON.parse(jsonPayload);
     }
 
-    // ==========================
-    // عند الضغط على زر التسجيل
-    // ==========================
-    document.getElementById("registerBtn").addEventListener("click", () => {
-      const email = document.getElementById("email").value;
-      const doctor = document.getElementById("doctor").value;
-      const msgBox = document.getElementById("messageBox");
+    function sendData() {
+      const email = document.getElementById("email").value.trim();
+      const doctor = document.getElementById("doctor").value.trim();
 
-      if (!email || !doctor) {
-        showMessage("⚠️ من فضلك أدخل جميع البيانات", false);
+      if (!doctor) {
+        showMessage("⚠️ من فضلك أدخل اسم الدكتور", false);
         return;
       }
 
-      // طلب إذن الموقع الجغرافي
-      navigator.geolocation.getCurrentPosition(position => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const latitude = pos.coords.latitude;
+          const longitude = pos.coords.longitude;
 
-        // إرسال البيانات إلى Google Script
-        fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, doctor, latitude, longitude })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            showMessage("✅ " + data.message, true);
-          } else {
-            showMessage("❌ " + (data.message || "حدث خطأ أثناء الإرسال"), false);
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          showMessage("❌ خطأ في الاتصال بالخادم", false);
+          fetch(WEB_APP_URL, {"https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec";}
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, doctor, latitude, longitude })
+          })
+          .then(res => res.json())
+          .then(data => {
+            showMessage(data.message, data.success);
+          })
+          .catch(err => {
+            showMessage("❌ حدث خطأ أثناء الإرسال", false);
+            console.error(err);
+          });
+
+        }, () => {
+          showMessage("⚠️ يجب السماح بالوصول إلى الموقع", false);
         });
+      } else {
+        showMessage("المتصفح لا يدعم تحديد الموقع", false);
+      }
+    }
 
-      }, () => {
-        showMessage("⚠️ من فضلك فعّل الموقع الجغرافي (GPS)", false);
-      });
-    });
-
-
-// ==========================
-    // عرض الرسالة
-    // ==========================
-    function showMessage(msg, success) {
-      const box = document.getElementById("messageBox");
-      box.style.color = success ? "green" : "red";
-      box.textContent = msg;
+function showMessage(msg, success) {
+      const el = document.getElementById("message");
+      el.textContent = msg;
+      el.className = success ? "message success" : "message error";
     }
   </script>
-
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
