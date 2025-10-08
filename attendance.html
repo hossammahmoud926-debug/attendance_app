@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل الحضور -</title>
+  <title>تسجيل الحضور - </title>
   <style>
     body {
       font-family: 'Cairo', sans-serif;
@@ -55,6 +55,8 @@
     .error { color: red; }
     .hidden { display: none; }
   </style>
+
+  <!-- مكتبة تسجيل الدخول -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -67,8 +69,9 @@
       <div id="g_id_onload"
            data-client_id="786071819345-qiftfnfup45vc92rdg5uvauf81rirt69.apps.googleusercontent.com"
            data-callback="handleCredentialResponse"
-           data-auto_select="true"></div>
-      <div class="g_id_signin" data-type="standard"></div>
+           data-auto_prompt="true">
+      </div>
+      <div class="g_id_signin" data-type="standard" data-size="large"></div>
     </div>
 
     <!-- بعد تسجيل الدخول -->
@@ -85,37 +88,39 @@
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdoe6JtvUtXp6T-swkBzTH229BF3JF6kxPyKaZziypkQRQDlGrKcWUY3ud7BwB4qXlmQ/exec";
 
-    // التعامل مع تسجيل الدخول بجوجل
+    // التعامل مع تسجيل الدخول
     function handleCredentialResponse(response) {
-      const data = JSON.parse(atob(response.credential.split(".")[1]));
-      const email = data.email;
-      document.getElementById("email").value = email;
-      document.getElementById("loginDiv").classList.add("hidden");
-      document.getElementById("mainDiv").classList.remove("hidden");
+      try {
+        const data = JSON.parse(atob(response.credential.split(".")[1]));
+        const email = data.email;
+        if (email) {
+          document.getElementById("email").value = email;
+          document.getElementById("loginDiv").classList.add("hidden");
+          document.getElementById("mainDiv").classList.remove("hidden");
+        } else {
+          alert("حدث خطأ أثناء جلب البريد الإلكتروني. حاول مرة أخرى.");
+        }
+      } catch (e) {
+        console.error("Error parsing token:", e);
+        alert("فشل تسجيل الدخول. حاول مرة أخرى.");
+      }
     }
 
-    // عند الضغط على تسجيل
+    // تسجيل الحضور
     document.getElementById("registerBtn").addEventListener("click", () => {
       const email = document.getElementById("email").value;
       const doctor = document.getElementById("doctor").value;
-      const messageBox = document.getElementById("message");
 
-      if (!doctor) {
-        showMessage("⚠️ من فضلك أدخل اسم الدكتور", false);
-        return;
-      }
+      if (!doctor) return showMessage("⚠️ من فضلك أدخل اسم الدكتور", false);
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          position => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-
+          pos => {
             const payload = {
-              email: email,
-              doctor: doctor,
-              latitude: lat,
-              longitude: lng
+              email,
+              doctor,
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude
             };
 
             fetch(WEB_APP_URL, {
@@ -123,16 +128,15 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload)
             })
-            .then(res => res.json())
-            .then(data => {
-              if (data.success) {
-                showMessage("✅ " + data.message, true);
-              } else {
+              .then(res => res.json())
 
-showMessage("❌ " + data.message, false);
-              }
-            })
-            .catch(() => showMessage("حدث خطأ أثناء الإرسال", false));
+.then(data => {
+                if (data.success)
+                  showMessage("✅ " + data.message, true);
+                else
+                  showMessage("❌ " + data.message, false);
+              })
+              .catch(() => showMessage("حدث خطأ أثناء الإرسال", false));
           },
           () => showMessage("⚠️ يجب السماح بالوصول إلى الموقع", false)
         );
