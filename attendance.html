@@ -18,6 +18,7 @@
   <div class="container">
     <h2>تسجيل حضور وانصراف</h2>
 
+    <!-- Google Sign-In -->
     <div id="g_id_onload"
          data-client_id="786071819345-qiftfnfup45vc92rdg5uvauf81rirt69.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
@@ -25,6 +26,7 @@
     </div>
     <div class="g_id_signin" data-type="standard"></div>
 
+    <!-- بيانات المستخدم -->
     <input type="email" id="email" placeholder="الإيميل" readonly>
     <input type="text" id="doctor" placeholder="اسم الدكتور">
     <button id="submitBtn">تسجيل</button>
@@ -38,10 +40,10 @@
       document.getElementById('email').value = jwt.email;
     }
 
-    function parseJwt (token) {
+    function parseJwt(token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
       return JSON.parse(jsonPayload);
@@ -68,13 +70,10 @@
           })
           .then(response => response.json())
           .then(data => {
-            // ← هنا الرسالة تظهر ديناميكي حسب أقرب مكان من App Script
-            if (data.success) {
-              document.getElementById('message').textContent = 
-                "تم تسجيل حضورك " + data.message.replace("تم تسجيل حضورك بنجاح في ", "");
-            } else {
-              document.getElementById('message').textContent = data.message;
-            }
+            // ← هنا الرسالة تظهر حسب منطق App Script
+            // إذا أول حضور يظهر "تم تسجيل حضورك لأول مرة..."
+            // إذا انصراف أو حضور دكتور آخر، تظهر الرسالة المناسبة
+            document.getElementById('message').textContent = data.success ? data.message : data.message;
           })
           .catch(err => {
             document.getElementById('message').textContent = "حدث خطأ أثناء التسجيل";
@@ -91,4 +90,3 @@
   </script>
 </body>
 </html>
-
