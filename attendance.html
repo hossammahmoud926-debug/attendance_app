@@ -11,7 +11,7 @@
     input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
     button { background: #007bff; color: #fff; border: none; cursor: pointer; }
     button:hover { background: #0056b3; }
-    .message { margin-top: 15px; font-weight: bold; text-align: center; }
+    .message { margin-top: 15px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -39,8 +39,6 @@
   </div>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec";
-
     // بعد تسجيل الدخول، يظهر الإيميل تلقائي
     function handleCredentialResponse(response) {
       const jwt = parseJwt(response.credential);
@@ -65,24 +63,27 @@
       if (!email) { alert('الرجاء تسجيل الدخول أولاً'); return; }
       if (!doctor) { alert('الرجاء إدخال اسم الدكتور'); return; }
 
+      // الحصول على الموقع الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-          // إرسال البيانات للـ Apps Script Web App
-          fetch("https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec", {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, doctor, latitude, longitude })
-})
-.then(response => response.json())
-.then(data => {
-  document.getElementById('message').textContent = data.message;
-});
+          const webAppUrl = "https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec";
+
+          fetch("https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec",{
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, doctor, latitude, longitude })
+          })
+          .then(response => response.json())
+          .then(data => {
+            // عرض اسم المكان والرمز ✔️ أو ❌ حسب الرد من App Script
+            document.getElementById('message').textContent = data.message;
+          })
           .catch(err => {
-            document.getElementById('message').textContent = "حدث خطأ أثناء التسجيل";
             console.error(err);
+            // أي خطأ مش هيتعرض للمستخدم
           });
 
         }, function(error) {
@@ -95,5 +96,3 @@
   </script>
 </body>
 </html>
-
-
