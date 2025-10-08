@@ -71,19 +71,27 @@
 
           const webAppUrl = "https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec";
 
-          fetch("https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec",{
+          // تعطيل الزر مؤقتًا أثناء الإرسال
+          const btn = document.getElementById('submitBtn');
+          btn.disabled = true;
+          btn.textContent = "جاري التسجيل...";
+
+          fetch(webAppUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, doctor, latitude, longitude })
           })
           .then(response => response.json())
           .then(data => {
-            // عرض اسم المكان والرمز ✔️ أو ❌ حسب الرد من App Script
             document.getElementById('message').textContent = data.message;
+            btn.disabled = false;
+            btn.textContent = "تسجيل";
           })
           .catch(err => {
             console.error(err);
-            // أي خطأ مش هيتعرض للمستخدم
+            document.getElementById('message').textContent = "حدث خطأ أثناء التسجيل";
+            btn.disabled = false;
+            btn.textContent = "تسجيل";
           });
 
         }, function(error) {
