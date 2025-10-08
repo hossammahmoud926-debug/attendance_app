@@ -18,7 +18,6 @@
   <div class="container">
     <h2>تسجيل حضور وانصراف</h2>
 
-    <!-- زر تسجيل الدخول بـ Google -->
     <div id="g_id_onload"
          data-client_id="786071819345-qiftfnfup45vc92rdg5uvauf81rirt69.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
@@ -26,26 +25,19 @@
     </div>
     <div class="g_id_signin" data-type="standard"></div>
 
-    <!-- خانة الإيميل -->
     <input type="email" id="email" placeholder="الإيميل" readonly>
-
-    <!-- خانة اسم الدكتور -->
     <input type="text" id="doctor" placeholder="اسم الدكتور">
-
-    <!-- زر تسجيل -->
     <button id="submitBtn">تسجيل</button>
 
     <div class="message" id="message"></div>
   </div>
 
   <script>
-    // بعد تسجيل الدخول، يظهر الإيميل تلقائي
     function handleCredentialResponse(response) {
       const jwt = parseJwt(response.credential);
       document.getElementById('email').value = jwt.email;
     }
 
-    // دالة لفك ترميز JWT
     function parseJwt (token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -55,7 +47,6 @@
       return JSON.parse(jsonPayload);
     }
 
-    // زر التسجيل
     document.getElementById('submitBtn').addEventListener('click', function() {
       const email = document.getElementById('email').value;
       const doctor = document.getElementById('doctor').value;
@@ -63,30 +54,29 @@
       if (!email) { alert('الرجاء تسجيل الدخول أولاً'); return; }
       if (!doctor) { alert('الرجاء إدخال اسم الدكتور'); return; }
 
-      // الحصول على الموقع الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-          // إرسال البيانات للـ Apps Script Web App
           const webAppUrl = "https://script.google.com/macros/s/AKfycbzd2k7NvDALGQgZD9ha_kF8qU-xjkFR6NeNPQmign0joY__LNlwulBgbNsouJ465tqYGg/exec";
 
           fetch(webAppUrl, {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: email,
-              doctor: doctor,
-              latitude: latitude,
-              longitude: longitude
-            })
+            body: JSON.stringify({ email, doctor, latitude, longitude })
           })
-          .then(() => {
-            document.getElementById('message').textContent = "تم تسجيل حضورك بنجاح في مكانك";
+          .then(response => response.json())
+          .then(data => {
+            // ← هنا الرسالة تظهر ديناميكي حسب أقرب مكان من App Script
+            if (data.success) {
+              document.getElementById('message').textContent = 
+                "تم تسجيل حضورك " + data.message.replace("تم تسجيل حضورك بنجاح في ", "");
+            } else {
+              document.getElementById('message').textContent = data.message;
+            }
           })
-          .catch((err) => {
+          .catch(err => {
             document.getElementById('message').textContent = "حدث خطأ أثناء التسجيل";
             console.error(err);
           });
