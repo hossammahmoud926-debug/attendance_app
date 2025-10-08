@@ -7,11 +7,13 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    .container { background: #fff; padding: 20px 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+    .container { background: #fff; padding: 20px 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
     input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
     button { background: #007bff; color: #fff; border: none; cursor: pointer; }
     button:hover { background: #0056b3; }
-    .message { margin-top: 15px; font-weight: bold; }
+    .message { margin-top: 15px; font-weight: bold; font-size: 16px; }
+    .message.success { color: green; }
+    .message.error { color: red; }
   </style>
 </head>
 <body>
@@ -20,7 +22,7 @@
 
     <!-- زر تسجيل الدخول بـ Google -->
     <div id="g_id_onload"
-         data-client_id="727738313637-7i5msbl42mnl379agl3vmperl1ca0rcn.apps.googleusercontent.com"
+         data-client_id="928614700583-vv39qquuq87hn27h2n26sd5k0g195teg.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
          data-auto_prompt="false">
     </div>
@@ -39,6 +41,9 @@
   </div>
 
   <script>
+    // رابط Web App الكامل
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyy4WSuMg3_hs1jYapLb3H6jEZa6v0J5AjSUwrmfT2hipWuid2PBvTjzW3NoLj4qPK2sA/exec";
+
     // بعد تسجيل الدخول، يظهر الإيميل تلقائي
     function handleCredentialResponse(response) {
       const jwt = parseJwt(response.credential);
@@ -46,7 +51,7 @@
     }
 
     // دالة لفك ترميز JWT
-    function parseJwt (token) {
+    function parseJwt(token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
@@ -59,39 +64,36 @@
     document.getElementById('submitBtn').addEventListener('click', function() {
       const email = document.getElementById('email').value;
       const doctor = document.getElementById('doctor').value;
+      const messageDiv = document.getElementById('message');
 
       if (!email) { alert('الرجاء تسجيل الدخول أولاً'); return; }
       if (!doctor) { alert('الرجاء إدخال اسم الدكتور'); return; }
 
-      // الحصول على الموقع الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-          const webAppUrl = "https://script.google.com/macros/s/AKfycbwCGVL1MD_eWNTzqxZ59PepcCyB4F-1KOOeuvcsg06K1T_XqhjIY14c27BfpJusjuIMPA/exec";
-
-          // تعطيل الزر مؤقتًا أثناء الإرسال
-          const btn = document.getElementById('submitBtn');
-          btn.disabled = true;
-          btn.textContent = "جاري التسجيل...";
-
-          fetch ("https://script.google.com/macros/s/AKfycbwCGVL1MD_eWNTzqxZ59PepcCyB4F-1KOOeuvcsg06K1T_XqhjIY14c27BfpJusjuIMPA/exec") {
+          fetch(WEB_APP_URL, {
             method: 'POST',
+            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, doctor, latitude, longitude })
           })
           .then(response => response.json())
           .then(data => {
-            document.getElementById('message').textContent = data.message;
-            btn.disabled = false;
-            btn.textContent = "تسجيل";
+            if (data.success) {
+              messageDiv.textContent = "✔️ " + data.message;
+              messageDiv.className = "message success";
+            } else {
+              messageDiv.textContent = "❌ " + data.message;
+              messageDiv.className = "message error";
+            }
           })
           .catch(err => {
             console.error(err);
-            document.getElementById('message').textContent = "حدث خطأ أثناء التسجيل";
-            btn.disabled = false;
-            btn.textContent = "تسجيل";
+            messageDiv.textContent = "❌ حدث خطأ أثناء التسجيل";
+            messageDiv.className = "message error";
           });
 
         }, function(error) {
@@ -104,4 +106,3 @@
   </script>
 </body>
 </html>
-
