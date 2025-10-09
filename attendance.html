@@ -21,7 +21,7 @@
 
     <!-- زر تسجيل الدخول بـ Google -->
     <div id="g_id_onload"
-         data-client_id="794304314851-p75rk7kktt3retumbkjrgfqn5kuiinnt.apps.googleusercontent.com"
+         data-client_id= "794304314851-p75rk7kktt3retumbkjrgfqn5kuiinnt.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
          data-auto_prompt="false">
     </div>
@@ -42,6 +42,7 @@
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyy4WSuMg3_hs1jYapLb3H6jEZa6v0J5AjSUwrmfT2hipWuid2PBvTjzW3NoLj4qPK2sA/exec";
 
+    // الأماكن والإحداثيات
     const locations = [
       {name: "الوحدة الصحية: الشوبك الغربي", lat: 29.780919, lng: 31.278475},
       {name: "الوحدة الصحية: أبو رجوان قبلي", lat: 29.770280, lng: 31.267013},
@@ -73,6 +74,7 @@
       msg.style.color = success ? 'green' : 'red';
     }
 
+    // فك شفرة التوكن من جوجل
     function parseJwt(token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -87,15 +89,19 @@
       document.getElementById('email').value = jwt.email;
     }
 
-function distance(lat1, lng1, lat2, lng2) {
-      const R = 6371; // km
+// حساب المسافة
+    function distance(lat1, lng1, lat2, lng2) {
+      const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLng = (lng2 - lng1) * Math.PI / 180;
-      const a = Math.sin(dLat/2)2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)2;
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     }
 
+    // تسجيل البيانات
     document.getElementById('submitBtn').addEventListener('click', function() {
       if (isLoading) return;
       isLoading = true;
@@ -103,31 +109,30 @@ function distance(lat1, lng1, lat2, lng2) {
 
       const email = document.getElementById('email').value;
       const doctor = document.getElementById('doctor').value;
-      if (!email) { alert('الرجاء تسجيل الدخول أولاً'); isLoading=false; return; }
-      if (!doctor) { alert('الرجاء إدخال اسم الدكتور'); isLoading=false; return; }
+
+      if (!email) { alert('الرجاء تسجيل الدخول أولاً'); isLoading = false; return; }
+      if (!doctor) { alert('الرجاء إدخال اسم الدكتور'); isLoading = false; return; }
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async function(position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-          // إرسال البيانات للـ Apps Script
           try {
             const res = await fetch(WEB_APP_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ doctor, latitude, longitude })
+              body: JSON.stringify({ email, doctor, latitude, longitude })
             });
             const result = await res.json();
             showMessage(result.message, result.success);
-          } catch(err) {
+          } catch (err) {
             showMessage('حدث خطأ أثناء التسجيل', false);
             console.error(err);
           } finally {
             isLoading = false;
           }
-
-        }, function(error) {
+        }, function() {
           alert('الرجاء السماح بالوصول للموقع لتسجيل الحضور');
           isLoading = false;
         });
@@ -139,5 +144,3 @@ function distance(lat1, lng1, lat2, lng2) {
   </script>
 </body>
 </html>
-
-
