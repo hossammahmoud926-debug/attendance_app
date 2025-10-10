@@ -76,7 +76,8 @@
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyy4WSuMg3_hs1jYapLb3H6jEZa6v0J5AjSUwrmfT2hipWuid2PBvTjzW3NoLj4qPK2sA/exec";
-
+    <script>
+   const GOOGLE_MAPS_API_KEY = "AIzaSyCuaG-F7VWugV_-drhAgq91YW0_gBJ1JE4";
     // الأماكن والإحداثيات الأصلية
     const locations = [
       {name: "الوحدة الصحية: الشوبك الغربي", lat: 29.780919, lng: 31.278475},
@@ -158,40 +159,53 @@ function handleCredentialResponse(response) {
             if (dist <= 100) { // 100 متر
               foundLocation = loc.name;
               break;
-            }
-          }
+          
+         }
+           // 🔹 جلب اسم الموقع من الإحداثيات باستخدام Google Maps API
+const GOOGLE_MAPS_API_KEY = "AIzaSyCuaG-F7VWugV_-drhAgq91YW0_gBJ1JE4";
 
+let foundLocation = "غير معروف";
+try {
+  const geoRes = await fetch(https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY});
+  const geoData = await geoRes.json();
+  foundLocation = geoData.results[0]?.formatted_address || "غير معروف";
+} catch (e) {
+  console.error("خطأ في جلب اسم الموقع:", e);
+} 
+try {
+  await fetch("https://script.google.com/macros/s/AKfycbyy4WSuMg3_hs1jYapLb3H6jEZa6v0J5AjSUwrmfT2hipWuid2PBvTjzW3NoLj4qPK2sA/exec", {
+    method: 'POST',
+    mode: 'no-cors', // ✅ هنا الإضافة الصح علشان GitHub يرسل البيانات بدون خطأ
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email,
+      doctor,
+      location: foundLocation,
+      latitude,
+      longitude
+    })
+  });
+
+  // ✅ رسالة النجاح
+  showMessage('تم تسجيل حضورك بنجاح ✅', true);
+
+} catch (err) {
+  // ❌ لو حصل خطأ في التنفيذ
+  showMessage('حدث خطأ أثناء التسجيل', false);
+  console.error(err);
+} finally {
+  isLoading = false;
+}
           if (!foundLocation) {
             showMessage('غير موجود بالمكان المحدد ❌', false);
             isLoading = false;
             return;
           }
 
-          try {
-            const res = await fetch(WEB_APP_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email, doctor, location: foundLocation, latitude, longitude })
-            });
-
-            const result = await res.json();
-            showMessage(result.message || 'تم تسجيل حضورك بنجاح ✅', result.success !== false);
-
-          } catch (err) {
-            showMessage('حدث خطأ أثناء التسجيل', false);
-            console.error(err);
-          } finally {
-            isLoading = false;
-          }
-        }, function() {
-          alert('الرجاء السماح بالوصول للموقع لتسجيل الحضور');
-          isLoading = false;
-        });
-      } else {
-        alert('المتصفح لا يدعم خدمة تحديد الموقع.');
-        isLoading = false;
+          
       }
     });
   </script>
 </body>
 </html>
+
